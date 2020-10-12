@@ -12,84 +12,92 @@
 class Vector {
 public:
     float x, y;
-    Vector(float x, float y) {
+    std::string name;
+    Vector(float x, float y, std::string name = "vector") {
         this->x = x;
         this->y = y;
+        this->name = name;
     }
-    Vector clone(void) { return Vector(this->x, this->y); };
+    Vector clone(void) { return Vector(this->x, this->y, this->name); };
     std::string to_string(void) {
-        return "x: " + std::to_string(this->x) + ", y: " + std::to_string(this->y);
+        return name + " - x: " + std::to_string(this->x) + ", y: " + std::to_string(this->y);
     }
+    float norm2(void) {
+        return std::pow(this->x, 2) + std::pow(this->y, 2);
+    };
     float norm(void) {
-        return sqrt(pow(this->x, 2) + pow(this->y, 2));
+        return std::sqrt(this->norm2());
     };
     float dot(Vector g) { return this->x * g.x + this->y * g.y; };
-    Vector operator+(int I) { return Vector(this->x + I, this->y + I); };
-    Vector operator-(int I) { return Vector(this->x - I, this->y - I); };
-    Vector operator*(int I) { return Vector(this->x * I, this->y * I); };
-    Vector operator/(int I) { return Vector(this->x / I, this->y / I); };
-    Vector operator+(Vector g) { return Vector(this->x + g.x, this->y + g.y); };
-    Vector operator-(Vector g) { return Vector(this->x - g.x, this->y - g.y); };
-    friend Vector operator+(int I, Vector f) { return Vector(I + f.x, I + f.y); };
-    friend Vector operator-(int I, Vector f) { return Vector(I - f.x, I - f.y); };
-    friend Vector operator*(int I, Vector f) { return Vector(I * f.x, I * f.y); };
-    friend Vector operator/(int I, Vector f) { return Vector(I / f.x, I / f.y); };
+    Vector operator+(float F) { return Vector(this->x + F, this->y + F, this->name); };
+    Vector operator-(float F) { return Vector(this->x - F, this->y - F, this->name); };
+    Vector operator*(float F) { return Vector(this->x * F, this->y * F, this->name); };
+    Vector operator/(float F) { return Vector(this->x / F, this->y / F, this->name); };
+    Vector operator+=(float F) {
+        *this = *this + F;
+        return *this;
+    };
+    Vector operator-=(float F) {
+        *this = *this - F;
+        return *this;
+    };
+    Vector operator*=(float F) {
+        *this = *this * F;
+        return *this;
+    };
+    Vector operator/=(float F) {
+        *this = *this / F;
+        return *this;
+    };
+    friend Vector operator+(float F, Vector g) { return Vector(F + g.x, F + g.y, g.name); };
+    friend Vector operator-(float F, Vector g) { return Vector(F - g.x, F - g.y, g.name); };
+    friend Vector operator*(float F, Vector g) { return Vector(F * g.x, F * g.y, g.name); };
+    friend Vector operator/(float F, Vector g) { return Vector(F / g.x, F / g.y, g.name); };
+
+    Vector operator+(Vector g) { return Vector(this->x + g.x, this->y + g.y, this->name); };
+    Vector operator-(Vector g) { return Vector(this->x - g.x, this->y - g.y, this->name); };
+    Vector operator+=(Vector g) {
+        *this = *this + g;
+        return *this;
+    };
+    Vector operator-=(Vector g) {
+        *this = *this - g;
+        return *this;
+    };
 };
 
 class Dot {
 public:
-    float x, y, mx, my;
+    Vector p = Vector(0, 0, "position"), m = Vector(0, 0, "momentum");
+    Dot(Vector p) {
+        this->p = p;
+    }
+    Dot(Vector p, Vector m) {
+        this->p = p;
+        this->m = m;
+    }
     Dot(float x, float y) {
-        this->x = x;
-        this->y = y;
-        this->mx = 0;
-        this->my = 0;
+        this->p.x = x;
+        this->p.y = y;
     }
     Dot(float x, float y, float mx, float my) {
-        this->x = x;
-        this->y = y;
-        this->mx = mx;
-        this->my = my;
+        this->p.x = x;
+        this->p.y = y;
+        this->m.x = mx;
+        this->m.y = my;
     }
     Vector distanceTo(Dot d) {
-        return this->distanceTo(Vector(d.x, d.y));
+        return d.p - this->p;
     }
     Vector distanceTo(Vector v) {
-        return v - Vector(this->x, this->y);
+        return v - this->p;
     }
-    Dot clone(void) { return Dot(this->x, this->y, this->mx, this->my); };
+    Dot clone(void) { return Dot(this->p, this->m); };
     std::string to_string(void) {
-        return "x: " + std::to_string(this->x) + ", y: " + std::to_string(this->y) +
-               ", mx: " + std::to_string(this->mx) + ", my: " + std::to_string(this->my);
+        return "Dot - " + this->p.to_string() + " " + this->m.to_string();
     }
 };
 
-class Force {
-public:
-    float x, y, theta, rho;
-    Force(float x, float y) {
-        this->x = x;
-        this->y = y;
-    }
-    Force operator+(int I) { return Force(this->x + I, this->y + I); };
-    Force operator-(int I) { return Force(this->x - I, this->y - I); };
-    Force operator*(int I) { return Force(this->x * I, this->y * I); };
-    Force operator/(int I) { return Force(this->x / I, this->y / I); };
-    Force operator+(Force g) { return Force(this->x + g.x, this->y + g.y); };
-    Force operator-(Force g) { return Force(this->x - g.x, this->y - g.y); };
-    Force operator-(void) { return Force(-this->x, -this->y); };
-    Force operator+=(Force g) {
-        *this = *this + g;
-        return *this;
-    };
-    friend Force operator+(int I, Force f) { return Force(I + f.x, I + f.y); };
-    friend Force operator-(int I, Force f) { return Force(I - f.x, I - f.y); };
-    friend Force operator*(int I, Force f) { return Force(I * f.x, I * f.y); };
-    friend Force operator/(int I, Force f) { return Force(I / f.x, I / f.y); };
-    std::string to_string(void) {
-        return "fx: " + std::to_string(this->x) + ", fy: " + std::to_string(this->y);
-    }
-};
 
 class OCDots {
 private:
@@ -103,9 +111,9 @@ public:
     void SetViscosity(double viscosity);
 
     std::vector<Dot> movePoints(std::vector<Dot> dots, std::vector<Vector> polygon);
-    Force pointForces(Dot d, std::vector<Dot>);
-    Force polygonForces(Dot d, std::vector<Vector>);
-    Dot updateMomentum(Dot d, Force f);
+    Vector pointForces(Dot d, std::vector<Dot>);
+    Vector polygonForces(Dot d, std::vector<Vector>);
+    Vector perpendicularToLine(Vector p, Vector v0, Vector v1);
     bool checkInbounds(Dot d, std::vector<Vector> polygon);
 };
 

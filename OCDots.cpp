@@ -5,13 +5,18 @@
 #include <exception>
 
 
-std::vector<Dot> OCDots::movePoints(std::vector<Dot> dots, std::vector<Vector> polygon) {
-    static int N = dots.size();
-    static int S = 120;// TODO: calculate perimeter of polygon
-    static float baseForce = 2;
-    static float drag = 0.05;
-    static float maxMomentum = 5;
+std::vector<Dot> OCDots::movePoints(
+        std::vector<Dot> dots,
+        std::vector<Vector> polygon,
+        float baseForce,
+        float drag,
+        float viscosity,
+        float maxMomentum) {
+    int N = dots.size();
     std::vector<Dot> dots_final;
+    int S = 0;
+    for (unsigned int i = 1; i < polygon.size(); i++)
+        S += (polygon[i] - polygon[i - 1]).norm();
 
     for (Dot d : dots) {
         // Calculate forces
@@ -22,12 +27,13 @@ std::vector<Dot> OCDots::movePoints(std::vector<Dot> dots, std::vector<Vector> p
         // Update momentum
         Dot e = d.clone();
         e.m += force;
-        float norm2 = e.m.norm();
-        if (!norm2 == 0) {
+        float norm2 = e.m.norm2();
+        if (norm2 != 0) {
+            // TODO: Think better about this logic
             float norm = std::sqrt(norm2);
             float modulo = norm - drag * norm2;// Momentum minus drag
             modulo = modulo < 0 ? 0.1 : (modulo > maxMomentum ? maxMomentum : modulo);
-            // TODO Add viscosity
+            modulo = modulo < viscosity ? 0 : modulo;
             e.m = Vector(modulo * e.m.x / norm, modulo * e.m.y / norm, e.m.name);
         }
         dots_final.push_back(e);
@@ -58,12 +64,12 @@ Vector OCDots::pointForces(Dot d, std::vector<Dot> dots) {
         float norm3 = std::pow(norm == 0 ? INFINITY : norm, 3);
         force += Vector(-r.x / norm3, -r.y / norm3);
     }
-    return force;
+    return -force;
 }
 
 Vector OCDots::polygonForces(Dot d, std::vector<Vector> polygon) {
     // https://aapt.scitation.org/doi/full/10.1119/1.4906421
-    static int N = polygon.size();
+    int N = polygon.size();
     Vector force = Vector(0, 0, "polygonForce");
     for (int i = 1; i < N; i++) {
         Vector v0 = polygon[i - 1];
@@ -88,25 +94,8 @@ Vector OCDots::polygonForces(Dot d, std::vector<Vector> polygon) {
 
         Vector f = (tv * t) + (pv * p);
         f *= modulo / f.norm();
-        // std::cout << "d: " << d.p.to_string() << std::endl;
-        // std::cout << v0.to_string() << std::endl;
-        // std::cout << v1.to_string() << std::endl;
-        // std::cout << "t: " << t.to_string() << std::endl;
-        // std::cout << "p: " << p.to_string() << std::endl;
-        // std::cout << "f: " << f.to_string() << std::endl;
-        // std::cout << "tv:" << std::to_string(tv) << std::endl;
-        // std::cout << "pv:" << std::to_string(pv) << std::endl;
-        // std::cout << "f_norm:" << std::to_string(f.norm()) << std::endl;
-        // std::cout << "modulo:" << std::to_string(modulo) << std::endl;
-        // std::cout << "thetaA:" << std::to_string(thetaA) << std::endl;
-        // std::cout << "thetaB:" << std::to_string(thetaB) << std::endl;
-        // std::cout << "dTheta:" << std::to_string(dTheta) << std::endl;
-        // std::cout << "v0p: " << v0p.to_string() << std::endl;
-        // std::cout << "v1p: " << v1p.to_string() << std::endl;
-        // std::cout << std::endl;
         force += f;
     }
-    // std::cout << force.to_string() << std::endl;
     return force;
 }
 
@@ -119,20 +108,18 @@ Vector OCDots::perpendicularToLine(Vector p, Vector v0, Vector v1) {
 }
 
 bool OCDots::checkInbounds(Dot d, std::vector<Vector> polygon) {
-    // TODO
-    return true;
-}
-
-OCDots::OCDots(double viscosity) {
-    if (viscosity < 0.) std::terminate();
-    m_viscosity = viscosity;
-}
-
-double OCDots::Viscosity() const {
-    return m_viscosity;
-}
-
-void OCDots::SetViscosity(double viscosity) {
-    if (viscosity < 0.) std::terminate();
-    m_viscosity = viscosity;
+    // https://en.wikipedia.org/wiki/Even%E2%80%93odd_rule
+    // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
+    // TODO Vectorize maybe? Not so CHUCHU
+    unsigned int j = polygon.size() - 1;
+    bool c = false;
+    for (unsigned int i = 0; i < polygon.size(); i++) {
+        if ((polygon[i].y > d.p.y) != (polygon[j].y > d.p.y) &&
+            (d.p.x < polygon[i].x +
+                             (polygon[j].x - polygon[i].x) *
+                                     (d.p.y - polygon[i].y) /
+                                     (polygon[j].y - polygon[i].y))) c = !c;
+        j = i;
+    }
+    return c;
 }

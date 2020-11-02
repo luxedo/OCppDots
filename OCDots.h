@@ -56,6 +56,7 @@ public:
 
     Vector operator+(Vector g) { return Vector(this->x + g.x, this->y + g.y, this->name); };
     Vector operator-(Vector g) { return Vector(this->x - g.x, this->y - g.y, this->name); };
+    Vector operator-(void) { return Vector(-this->x, -this->y, this->name); };
     Vector operator+=(Vector g) {
         *this = *this + g;
         return *this;
@@ -100,17 +101,15 @@ public:
 
 
 class OCDots {
-private:
-    double m_viscosity = -1.0;
-
 public:
-    explicit OCDots(double viscosity);
     ~OCDots() = default;
-
-    [[nodiscard]] double Viscosity() const;
-    void SetViscosity(double viscosity);
-
-    std::vector<Dot> movePoints(std::vector<Dot> dots, std::vector<Vector> polygon);
+    std::vector<Dot> movePoints(
+            std::vector<Dot> dots,
+            std::vector<Vector> polygon,
+            float baseForce = 2,
+            float drag = 0.05,
+            float viscosity = 0.1,
+            float maxMomentum = 5);
     Vector pointForces(Dot d, std::vector<Dot>);
     Vector polygonForces(Dot d, std::vector<Vector>);
     Vector perpendicularToLine(Vector p, Vector v0, Vector v1);

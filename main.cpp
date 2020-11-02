@@ -2,15 +2,16 @@
 #include <iostream>
 
 int main() {
-    OCDots ds(3.8);
-    // std::vector<Dot> dots = {
-    //         Dot(10, 10),
-    //         Dot(10, 20),
-    //         Dot(20, 20),
-    //         Dot(20, 10)};
-    //
+    OCDots ds{};
+
     std::vector<Dot> dots = {
-            Dot(10, 13, 1, 0)// starting momentum 1 in the x axis
+            Dot(10, 13, 0, 0),
+            Dot(20, 23, 0, 0),
+            Dot(10, 23, 0, 0),
+            Dot(20, 13, 0, 0),
+            Dot(20, 14, 0, 0),
+            Dot(21, 14, 0, 0),
+            Dot(22, 14, 0, 0),
     };
     std::vector<Vector> polygon = {
             Vector(0, 0),
@@ -30,6 +31,5 @@ int main() {
                 std::cout << d.to_string() << std::endl;
         }
     }
-
     return 0;
 }

@@ -1,35 +1,75 @@
+#include <GL/glut.h>
+
 #include "OCDots.h"
 #include <iostream>
 
-int main() {
-    OCDots ds{};
+void loop(int);
+void draw(void);
+void init(void);
 
-    std::vector<Dot> dots = {
-            Dot(10, 13, 0, 0),
-            Dot(20, 23, 0, 0),
-            Dot(10, 23, 0, 0),
-            Dot(20, 13, 0, 0),
-            Dot(20, 14, 0, 0),
-            Dot(21, 14, 0, 0),
-            Dot(22, 14, 0, 0),
-    };
-    std::vector<Vector> polygon = {
-            Vector(0, 0),
-            Vector(0, 30),
-            Vector(30, 30),
-            Vector(30, 0),
-            Vector(0, 0)};
-    std::cout << "Dots before:" << std::endl;
-    for (Dot d : dots)
-        std::cout << d.to_string() << std::endl;
+std::vector<Dot> dots = {
+        Dot(150, 230, 0, 0),
+        Dot(130, 50, 0, 0),
+        Dot(160, 140, 0, 0),
+        Dot(140, 60, 0, 0),
+        Dot(140, 160, 0, 0),
+};
+std::vector<Vector> polygon = {
+        Vector(150, 0),
+        Vector(0, 300),
+        Vector(300, 300),
+        Vector(150, 0)};
+OCDots ds{};
 
-    for (int i = 0; i < 1001; i++) {
-        dots = ds.movePoints(dots, polygon);
-        if (i % 100 == 0) {
-            std::cout << "Dots iter: " << std::to_string(i) << std::endl;
-            for (Dot d : dots)
-                std::cout << d.to_string() << std::endl;
-        }
-    }
+int main(int argc, char **argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(300, 300);
+    glutInitWindowPosition(0, 0);
+    glutCreateWindow("Points");
+    glutDisplayFunc(draw);
+    glutTimerFunc(1000 / 60, loop, 0);
+    init();
+    glutMainLoop();
+
     return 0;
+}
+
+void update() {
+    dots = ds.movePoints(dots, polygon);
+}
+
+void loop(int) {
+    update();
+    // draw();
+    glutPostRedisplay();
+    glutTimerFunc(1000 / 60, loop, 0);
+}
+
+void draw(void) {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_POLYGON);
+    for (unsigned int i = 1; i < polygon.size(); i++) {
+        glVertex2f(polygon[i].x, polygon[i].y);
+    }
+    glClear(GL_COLOR_BUFFER_BIT);
+    glEnd();
+
+    glBegin(GL_POINTS);
+    glColor3f(0.0, 0.0, 0.0);
+    for (unsigned int i = 0; i < dots.size(); i++) {
+        glVertex2f(dots[i].p.x, dots[i].p.y);
+    }
+    glEnd();
+    glFlush();
+}
+
+void init() {
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glColor3f(0.0, 1.0, 0.0);
+    glPointSize(10.0);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0.0, 300.0, 0.0, 300.0);
 }

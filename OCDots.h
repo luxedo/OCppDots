@@ -106,9 +106,9 @@ public:
     std::vector<Dot> movePoints(
             std::vector<Dot> dots,
             std::vector<Vector> polygon,
-            float baseForce = 2,
+            float baseForce = 4,
             float drag = 0.05,
-            float viscosity = 0.1,
+            float viscosity = 0.01,
             float maxMomentum = 5);
     Vector pointForces(Dot d, std::vector<Dot>);
     Vector polygonForces(Dot d, std::vector<Vector>);

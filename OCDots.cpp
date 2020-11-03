@@ -2,8 +2,6 @@
 // Created by Gustavo Batistela on 09/10/2020.
 //
 #include "OCDots.h"
-#include <exception>
-
 
 std::vector<Dot> OCDots::movePoints(
         std::vector<Dot> dots,
@@ -12,7 +10,7 @@ std::vector<Dot> OCDots::movePoints(
         float drag,
         float viscosity,
         float maxMomentum) {
-    int N = dots.size();
+    const int N = dots.size();
     std::vector<Dot> dots_final;
     int S = 0;
     for (unsigned int i = 1; i < polygon.size(); i++)
@@ -25,12 +23,12 @@ std::vector<Dot> OCDots::movePoints(
         Vector force = pow(10, baseForce) * (pf + (2 * N * bf) / S);// Final force Vector
 
         // Update momentum
-        Dot e = d.clone();
+        Dot e = d;
         e.m += force;
-        float norm2 = e.m.norm2();
+        const float norm2 = e.m.norm2();
         if (norm2 != 0) {
             // TODO: Think better about this logic
-            float norm = std::sqrt(norm2);
+            const float norm = std::sqrt(norm2);
             float modulo = norm - drag * norm2;// Momentum minus drag
             modulo = modulo < 0 ? 0.1 : (modulo > maxMomentum ? maxMomentum : modulo);
             modulo = modulo < viscosity ? 0 : modulo;
@@ -41,7 +39,7 @@ std::vector<Dot> OCDots::movePoints(
 
     // Move points
     for (int i = 0; i < N; i++) {
-        Dot d = dots_final[i].clone();
+        Dot d = dots_final[i];
         d.p += d.m;
         if (!OCDots::checkInbounds(d, polygon)) {
             // If dot would end up out of bounds then zero it's momentum
@@ -60,8 +58,8 @@ Vector OCDots::pointForces(Dot d, std::vector<Dot> dots) {
     Vector force = Vector(0, 0, "pointForce");
     for (Dot e : dots) {
         Vector r = d.p - e.p;
-        float norm = r.norm();
-        float norm3 = std::pow(norm == 0 ? INFINITY : norm, 3);
+        const float norm = r.norm();
+        const float norm3 = std::pow(norm == 0 ? INFINITY : norm, 3);
         force += Vector(-r.x / norm3, -r.y / norm3);
     }
     return -force;
@@ -69,7 +67,7 @@ Vector OCDots::pointForces(Dot d, std::vector<Dot> dots) {
 
 Vector OCDots::polygonForces(Dot d, std::vector<Vector> polygon) {
     // https://aapt.scitation.org/doi/full/10.1119/1.4906421
-    int N = polygon.size();
+    const int N = polygon.size();
     Vector force = Vector(0, 0, "polygonForce");
     for (int i = 1; i < N; i++) {
         Vector v0 = polygon[i - 1];
@@ -77,20 +75,20 @@ Vector OCDots::polygonForces(Dot d, std::vector<Vector> polygon) {
 
         Vector t = OCDots::perpendicularToLine(d.p, v0, v1);
         Vector p = Vector(-t.y, t.x);
-        float nt = t.norm();
+        const float nt = t.norm();
 
         Vector v0p = d.p - v0;
         Vector v1p = d.p - v1;
-        float thetaA = std::atan2(v0p.y, v0p.x) - std::atan2(t.y, t.x);
-        float thetaB = std::atan2(v1p.y, v1p.x) - std::atan2(t.y, t.x);
+        const float thetaA = std::atan2(v0p.y, v0p.x) - std::atan2(t.y, t.x);
+        const float thetaB = std::atan2(v1p.y, v1p.x) - std::atan2(t.y, t.x);
         float dTheta = thetaB - thetaA;
         dTheta = dTheta <= -M_PI ? dTheta + 2 * M_PI : dTheta;
         dTheta = dTheta > M_PI ? dTheta - 2 * M_PI : dTheta;
 
-        float modulo = (1.0 / nt) * std::sin(dTheta / 2.0);
+        const float modulo = (1.0 / nt) * std::sin(dTheta / 2.0);
 
-        float tv = std::sin(thetaB) - std::sin(thetaA);
-        float pv = -(std::cos(thetaB) - std::cos(thetaA));
+        const float tv = std::sin(thetaB) - std::sin(thetaA);
+        const float pv = -(std::cos(thetaB) - std::cos(thetaA));
 
         Vector f = (tv * t) + (pv * p);
         f *= modulo / f.norm();

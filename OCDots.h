@@ -8,7 +8,6 @@
 #ifndef OCDOTS_H
 #define OCDOTS_H
 
-
 class Vector {
 public:
     float x, y;
@@ -18,17 +17,22 @@ public:
         this->y = y;
         this->name = name;
     }
-    Vector clone(void) { return Vector(this->x, this->y, this->name); };
-    std::string to_string(void) {
+    Vector &operator=(const Vector &v) {
+        this->x = v.x;
+        this->y = v.y;
+        this->name = v.name;
+        return *this;
+    };
+    std::string const to_string() {
         return name + " - x: " + std::to_string(this->x) + ", y: " + std::to_string(this->y);
     }
-    float norm2(void) {
+    float const norm2() {
         return std::pow(this->x, 2) + std::pow(this->y, 2);
     };
-    float norm(void) {
+    float const norm() {
         return std::sqrt(this->norm2());
     };
-    float dot(Vector g) { return this->x * g.x + this->y * g.y; };
+    float const dot(Vector const g) { return this->x * g.x + this->y * g.y; };
     Vector operator+(float F) { return Vector(this->x + F, this->y + F, this->name); };
     Vector operator-(float F) { return Vector(this->x - F, this->y - F, this->name); };
     Vector operator*(float F) { return Vector(this->x * F, this->y * F, this->name); };
@@ -56,7 +60,7 @@ public:
 
     Vector operator+(Vector g) { return Vector(this->x + g.x, this->y + g.y, this->name); };
     Vector operator-(Vector g) { return Vector(this->x - g.x, this->y - g.y, this->name); };
-    Vector operator-(void) { return Vector(-this->x, -this->y, this->name); };
+    Vector operator-() { return Vector(-this->x, -this->y, this->name); };
     Vector operator+=(Vector g) {
         *this = *this + g;
         return *this;
@@ -70,9 +74,7 @@ public:
 class Dot {
 public:
     Vector p = Vector(0, 0, "position"), m = Vector(0, 0, "momentum");
-    Dot(Vector p) {
-        this->p = p;
-    }
+    Dot(Vector p) { this->p = p; }
     Dot(Vector p, Vector m) {
         this->p = p;
         this->m = m;
@@ -87,14 +89,14 @@ public:
         this->m.x = mx;
         this->m.y = my;
     }
-    Vector distanceTo(Dot d) {
-        return d.p - this->p;
-    }
-    Vector distanceTo(Vector v) {
-        return v - this->p;
-    }
-    Dot clone(void) { return Dot(this->p, this->m); };
-    std::string to_string(void) {
+    Dot &operator=(Dot &d) {
+        this->p = d.p;
+        this->m = d.m;
+        return *this;
+    };
+    Vector const distanceTo(Dot d) { return d.p - this->p; }
+    Vector const distanceTo(Vector v) { return v - this->p; }
+    std::string const to_string() {
         return "Dot - " + this->p.to_string() + " " + this->m.to_string();
     }
 };
